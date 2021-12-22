@@ -121,13 +121,7 @@ defaults:
       command: ./scripts/docs_version_pragma_check.sh
 
   # --------------------------------------------------------------------------
-  # Artifacts Templates
-
-  # the whole build directory
-  - artifacts_build_dir: &artifacts_build_dir
-      root: build
-      paths:
-        - "*"
+  # Artifact and Workspace Content Templates
 
   # compiled solc executable target
   - artifacts_solc: &artifacts_solc
@@ -147,8 +141,13 @@ defaults:
       path: build/tools/yul-phaser
       destination: yul-phaser
 
+  # test result output directory
+  - artifacts_test_results: &artifacts_test_results
+      path: test_results/
+      destination: test_results/
+
   # compiled executable targets
-  - artifacts_executables: &artifacts_executables
+  - workspace_linux_executables: &workspace_linux_executables
       root: .
       paths:
         - build/solc/solc
@@ -156,7 +155,7 @@ defaults:
         - build/test/tools/solfuzzer
 
   # compiled OSSFUZZ targets
-  - artifacts_executables_ossfuzz: &artifacts_executables_ossfuzz
+  - workspace_linux_executables_ossfuzz: &workspace_linux_executables_ossfuzz
       root: .
       paths:
         - build/test/tools/ossfuzz/abiv2_proto_ossfuzz
@@ -173,10 +172,28 @@ defaults:
         - build/test/tools/ossfuzz/yul_proto_ossfuzz
         - build/test/tools/ossfuzz/sol_proto_ossfuzz
 
-  # test result output directory
-  - artifacts_test_results: &artifacts_test_results
-      path: test_results/
-      destination: test_results/
+  - workspace_windows_executables: &workspace_windows_executables
+      root: .
+      paths:
+        - build/solc/*/solc.exe
+        - build/test/*/soltest.exe
+
+  - workspace_emscripten_executables: &workspace_emscripten_executables
+      root: .
+      paths:
+        - build/soljson.js
+        - build/version.txt
+
+  - workspace_bytecode_reports: &workspace_bytecode_reports
+      root: .
+      paths:
+        - reports/bytecode/ubuntu-json.txt
+        - reports/bytecode/ubuntu-cli.txt
+        - reports/bytecode/osx-json.txt
+        - reports/bytecode/osx-cli.txt
+        - reports/bytecode/windows-json.txt
+        - reports/bytecode/windows-cli.txt
+        - reports/bytecode/emscripten.txt
 
   # --------------------------------------------------------------------------
   # Step Templates
@@ -615,7 +632,7 @@ jobs:
       - store_artifacts: *artifacts_solc
       - store_artifacts: *artifact_solidity_upgrade
       - store_artifacts: *artifact_yul_phaser
-      - persist_to_workspace: *artifacts_executables
+      - persist_to_workspace: *workspace_linux_executables
       - gitter_notify_failure_unless_pr
 
   # x64 ASAN build, for testing for memory related bugs
@@ -630,7 +647,7 @@ jobs:
       - checkout
       - run: *run_build
       - store_artifacts: *artifacts_solc
-      - persist_to_workspace: *artifacts_executables
+      - persist_to_workspace: *workspace_linux_executables
       - gitter_notify_failure_unless_pr
 
   b_ubu_clang: &b_ubu_clang
@@ -644,7 +661,7 @@ jobs:
       - checkout
       - run: *run_build
       - store_artifacts: *artifacts_solc
-      - persist_to_workspace: *artifacts_executables
+      - persist_to_workspace: *workspace_linux_executables
       - gitter_notify_failure_unless_pr
 
   b_ubu_asan_clang: &b_ubu_asan_clang
@@ -659,7 +676,7 @@ jobs:
       - checkout
       - run: *run_build
       - store_artifacts: *artifacts_solc
-      - persist_to_workspace: *artifacts_executables
+      - persist_to_workspace: *workspace_linux_executables
       - gitter_notify_failure_unless_pr
 
   b_ubu_ubsan_clang: &b_ubu_ubsan_clang
@@ -674,7 +691,7 @@ jobs:
       - checkout
       - run: *run_build
       - store_artifacts: *artifacts_solc
-      - persist_to_workspace: *artifacts_executables
+      - persist_to_workspace: *workspace_linux_executables
       - gitter_notify_failure_unless_pr
 
   b_ubu_release: &b_ubu_release
@@ -697,7 +714,7 @@ jobs:
           name: strip binary
           command: strip build/solc/solc
       - store_artifacts: *artifacts_solc
-      - persist_to_workspace: *artifacts_executables
+      - persist_to_workspace: *workspace_linux_executables
       - gitter_notify_failure_unless_pr
 
   b_ubu_codecov:
@@ -710,7 +727,7 @@ jobs:
     steps:
       - checkout
       - run: *run_build
-      - persist_to_workspace: *artifacts_executables
+      - persist_to_workspace: *workspace_linux_executables
       - gitter_notify_failure_unless_pr
 
   t_ubu_codecov:
@@ -754,7 +771,7 @@ jobs:
       - checkout
       - run: *setup_prerelease_commit_hash
       - run: *run_build_ossfuzz
-      - persist_to_workspace: *artifacts_executables_ossfuzz
+      - persist_to_workspace: *workspace_linux_executables_ossfuzz
       - gitter_notify_failure_unless_pr
 
   t_ubu_ossfuzz: &t_ubu_ossfuzz
@@ -787,7 +804,7 @@ jobs:
       - checkout
       - run: *run_build
       - store_artifacts: *artifacts_solc
-      - persist_to_workspace: *artifacts_executables
+      - persist_to_workspace: *workspace_linux_executables
       - gitter_notify_failure_unless_pr
 
   b_osx:
@@ -819,12 +836,7 @@ jobs:
       - store_artifacts: *artifacts_solc
       - store_artifacts: *artifact_solidity_upgrade
       - store_artifacts: *artifact_yul_phaser
-      - persist_to_workspace:
-          root: .
-          paths:
-            - build/solc/solc
-            - build/test/soltest
-            - build/test/tools/solfuzzer
+      - persist_to_workspace: *workspace_linux_executables
       - gitter_notify_failure_unless_pr
 
   t_osx_soltest:
@@ -875,11 +887,7 @@ jobs:
       - run: mkdir -p build/
       - run: cp emscripten_build/libsolc/soljson.js build/soljson.js
       - run: scripts/get_version.sh > build/version.txt
-      - persist_to_workspace:
-          root: .
-          paths:
-            - build/soljson.js
-            - build/version.txt
+      - persist_to_workspace: *workspace_emscripten_executables
       - gitter_notify_failure_unless_pr
 
   b_docs:
@@ -1111,11 +1119,7 @@ jobs:
           name: "Run solc.exe to make sure build was successful."
           command: .\build\solc\Release\solc.exe --version
       - store_artifacts: *artifact_solc_windows
-      - persist_to_workspace:
-          root: .
-          paths:
-            - build\solc\*\solc.exe
-            - build\test\*\soltest.exe
+      - persist_to_workspace: *workspace_windows_executables
       - gitter_notify_failure_unless_pr
 
   b_win_release:
@@ -1158,11 +1162,7 @@ jobs:
           path: reports/bytecode/ubuntu-json.txt
       - store_artifacts:
           path: reports/bytecode/ubuntu-cli.txt
-      - persist_to_workspace:
-          root: .
-          paths:
-            - reports/bytecode/ubuntu-json.txt
-            - reports/bytecode/ubuntu-cli.txt
+      - persist_to_workspace: *workspace_bytecode_reports
       - gitter_notify_failure_unless_pr
 
   b_bytecode_osx:
@@ -1179,11 +1179,7 @@ jobs:
           path: reports/bytecode/osx-json.txt
       - store_artifacts:
           path: reports/bytecode/osx-cli.txt
-      - persist_to_workspace:
-          root: .
-          paths:
-            - reports/bytecode/osx-json.txt
-            - reports/bytecode/osx-cli.txt
+      - persist_to_workspace: *workspace_bytecode_reports
       - gitter_notify_failure_unless_pr
 
   b_bytecode_win:
@@ -1203,11 +1199,7 @@ jobs:
           path: reports/bytecode/windows-json.txt
       - store_artifacts:
           path: reports/bytecode/windows-cli.txt
-      - persist_to_workspace:
-          root: .
-          paths:
-            - reports/bytecode/windows-json.txt
-            - reports/bytecode/windows-cli.txt
+      - persist_to_workspace: *workspace_bytecode_reports
       - gitter_notify_failure_unless_pr
 
   b_bytecode_ems:
@@ -1226,10 +1218,7 @@ jobs:
           mv -v report.txt reports/bytecode/emscripten.txt
       - store_artifacts:
           path: reports/bytecode/emscripten.txt
-      - persist_to_workspace:
-          root: .
-          paths:
-            - reports/bytecode/emscripten.txt
+      - persist_to_workspace: *workspace_bytecode_reports
       - gitter_notify_failure_unless_pr
 
   t_bytecode_compare:
