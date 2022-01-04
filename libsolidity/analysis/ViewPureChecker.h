@@ -63,6 +63,9 @@ private:
 	void endVisit(FunctionCall const& _functionCall) override;
 	void endVisit(InlineAssembly const& _inlineAssembly) override;
 
+	/// Do not handle nor recurse into ImportDirective.
+	bool visit(ImportDirective const&) override { return false; }
+
 	/// Called when an element of mutability @a _mutability is encountered.
 	/// Creates appropriate warnings and errors and sets @a m_currentBestMutability.
 	void reportMutability(

@@ -85,6 +85,9 @@ private:
 	bool visit(InlineAssembly const& _inlineAssembly) override;
 	bool visit(Return const& _return) override;
 
+	/// Do not handle nor recurse into ImportDirective.
+	bool visit(ImportDirective const&) override { return false; }
+
 	void operator()(yul::FunctionDefinition const& _function) override;
 	void operator()(yul::Identifier const& _identifier) override;
 	void operator()(yul::VariableDeclaration const& _varDecl) override;

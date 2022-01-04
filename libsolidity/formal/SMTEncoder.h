@@ -175,6 +175,9 @@ protected:
 	void endVisit(TryCatchClause const&) override {}
 	bool visit(TryStatement const&) override { return false; }
 
+	/// Do not handle nor recurse into ImportDirective.
+	bool visit(ImportDirective const&) override { return false; }
+
 	virtual void pushInlineFrame(CallableDeclaration const&);
 	virtual void popInlineFrame(CallableDeclaration const&);
 
