@@ -4,6 +4,9 @@
 #include <libsolidity/lsp/FileRepository.h>
 #include <libsolidity/lsp/Utils.h>
 
+#include <fmt/format.h>
+#include <fstream>
+
 namespace solidity::lsp
 {
 
@@ -36,13 +39,18 @@ Json::Value toJsonRange(LineColumn const& _start, LineColumn const& _end)
 	return json;
 }
 
+#define DEBUGLOG(message) (std::ofstream("/tmp/solc.log", std::ios::app) << (message) << std::endl)
+
 vector<Declaration const*> allAnnotatedDeclarations(Expression const* _expression)
 {
 	vector<Declaration const*> output;
 
 	if (auto const* identifier = dynamic_cast<Identifier const*>(_expression))
 	{
-		output.push_back(identifier->annotation().referencedDeclaration);
+		Declaration const* referencedDeclaration = identifier->annotation().referencedDeclaration;
+		DEBUGLOG(fmt::format("referenced declaration: {} {}", typeid(*referencedDeclaration).name(), referencedDeclaration->name()));
+		output.push_back(referencedDeclaration);
+		//output.push_back(identifier->annotation().referencedDeclaration);
 		output += identifier->annotation().candidateDeclarations;
 	}
 	else if (auto const* memberAccess = dynamic_cast<MemberAccess const*>(_expression))

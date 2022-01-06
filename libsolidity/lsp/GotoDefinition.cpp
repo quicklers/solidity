@@ -18,6 +18,8 @@ using std::vector;
 using namespace solidity::frontend;
 using namespace solidity::langutil;
 
+#define DEBUGLOG(message) (std::ofstream("/tmp/solc.log", std::ios::app) << (message) << std::endl)
+
 namespace solidity::lsp
 {
 
@@ -45,6 +47,7 @@ void GotoDefinition::operator()(MessageID _id, Json::Value const& _args)
 
 	ASTNode const* sourceNode = m_server.requestASTNode(sourceUnitName, lineColumn.value());
 	vector<SourceLocation> locations;
+	DEBUGLOG(fmt::format("GotoDefinition: source node: {}", typeid(*sourceNode).name()));
 	if (auto const* expression = dynamic_cast<Expression const*>(sourceNode))
 	{
 		// Handles all expressions that can have one or more declaration annotation.
