@@ -110,6 +110,8 @@ bool NameAndTypeResolver::performImports(SourceUnit& _sourceUnit, map<string, So
 								m_errorReporter
 							))
 								error = true;
+							//else
+							//	alias.symbol->annotation().referencedDeclaration = declaration;
 				}
 			else if (imp->name().empty())
 				for (auto const& nameAndDeclaration: scope->second->declarations())

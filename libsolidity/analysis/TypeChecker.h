@@ -159,8 +159,8 @@ private:
 	void endVisit(Literal const& _literal) override;
 	void endVisit(UsingForDirective const& _usingForDirective) override;
 
-	/// Do not handle nor recurse into ImportDirective.
-	bool visit(ImportDirective const&) override { return false; }
+	// Do not handle nor recurse into ImportDirective.
+	//bool visit(ImportDirective const&) override { return false; }
 
 	void checkErrorAndEventParameters(CallableDeclaration const& _callable);
 

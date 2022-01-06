@@ -85,8 +85,10 @@ private:
 	bool visit(InlineAssembly const& _inlineAssembly) override;
 	bool visit(Return const& _return) override;
 
-	/// Do not handle nor recurse into ImportDirective.
-	bool visit(ImportDirective const&) override { return false; }
+	// Not visiting this here, otherwise it would set a wrong
+	// referencedDeclaration in the Identifier visitor further down.
+	// referencedDeclaration is instead set in NameAndTypeResolver::performImports
+	//bool visit(ImportDirective const&) override { return false; }
 
 	void operator()(yul::FunctionDefinition const& _function) override;
 	void operator()(yul::Identifier const& _identifier) override;
